@@ -6,10 +6,10 @@ import json
 from google import genai
 
 github_headers = {
-    "Authorization": f"Bearer {os.environ['GH_SEARCH_TOKEN']}",
+    "Authorization": f"Bearer {os.environ['GH_SEARCH_TOKEN'].strip()}",
     "Accept": "application/vnd.github+json",
 }
-gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip())
 
 
 def fetch_popular_repos(days=7, per_page=15, min_stars=500):
@@ -80,16 +80,23 @@ def build_article(repos_with_summary):
     lines = [
         f"直近1週間で新しく作成され、スター数が多かったGitHubリポジトリを{len(repos_with_summary)}件まとめました。",
         "",
-        "---",
-        "",
     ]
 
-    for repo, summary in repos_with_summary:
-        lines.append(f"## 📦 {repo['full_name']}")
+    if len(repos_with_summary) >= 3:
+        lines.append("### 🏆 今週のトップ3")
+        for i, (repo, _) in enumerate(repos_with_summary[:3], start=1):
+            lines.append(f"{i}. [{repo['full_name']}]({repo['html_url']}) (⭐{repo['stargazers_count']:,})")
+        lines.append("")
+
+    lines.append("---")
+    lines.append("")
+
+    for i, (repo, summary) in enumerate(repos_with_summary, start=1):
+        lines.append(f"## {i}位: 📦 {repo['full_name']}")
         lines.append("")
         lines.append(f"| ⭐ Star数 | 言語 |")
         lines.append(f"|---|---|")
-        lines.append(f"| {repo['stargazers_count']} | {repo['language'] or '不明'} |")
+        lines.append(f"| {repo['stargazers_count']:,} | {repo['language'] or '-'} |")
         lines.append("")
         lines.append(f"### 概要")
         lines.append(summary['overview'])
@@ -128,7 +135,7 @@ def build_tags(repos_with_summary):
 def post_to_qiita(title, body, tags, private=True):
     url = "https://qiita.com/api/v2/items"
     headers = {
-        "Authorization": f"Bearer {os.environ['QIITA_TOKEN']}",
+        "Authorization": f"Bearer {os.environ['QIITA_TOKEN'].strip()}",
         "Content-Type": "application/json",
     }
     payload = {
