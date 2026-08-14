@@ -6,7 +6,7 @@ import json
 from google import genai
 
 github_headers = {
-    "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+    "Authorization": f"Bearer {os.environ['GH_SEARCH_TOKEN']}",
     "Accept": "application/vnd.github+json",
 }
 gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
