@@ -1,0 +1,34 @@
+name: Weekly GitHub Trend Post
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"  # 毎週月曜 9:00 JST (UTC 0:00)
+  workflow_dispatch:  # 手動実行用ボタンも追加しておく
+
+jobs:
+  post-article:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run script
+        env:
+          GH_SEARCH_TOKEN: ${{ secrets.GH_SEARCH_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          QIITA_TOKEN: ${{ secrets.QIITA_TOKEN }}
+        run: python generate_article.py
+
+      - name: Upload article as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: article
+          path: article.md
