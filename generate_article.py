@@ -175,6 +175,6 @@ if __name__ == "__main__":
         title=title,
         body=article,
         tags=build_tags(repos_with_summary),
-        private=False,  # まずは下書き(自分だけ閲覧可)で投稿確認
+        private=True,  # 自動投稿は常に限定共有。公開は確認後に手動で切り替える
     )
     print(f"Qiitaに投稿しました(下書き): {result['url']}")
