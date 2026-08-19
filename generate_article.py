@@ -121,13 +121,13 @@ def build_article(repos_with_summary):
 def build_tags(repos_with_summary):
     fixed_tags = ["GitHub", "GitHubTrending", "AI"]
 
-    languages = {
-        repo["language"]
-        for repo, _ in repos_with_summary
-        if repo["language"]
-    }
+    # dict.fromkeys()で重複を除きつつ、スター数順(repos_with_summaryの並び順)を維持する
+    # setだと実行のたびに順序が変わり、同じ入力でもタグが変わってしまうため使わない
+    languages = list(dict.fromkeys(
+        repo["language"] for repo, _ in repos_with_summary if repo["language"]
+    ))
     # Qiitaのタグ数上限は5個程度が実用的なので、言語タグは上位2つまで
-    lang_tags = list(languages)[:2]
+    lang_tags = languages[:2]
 
     return fixed_tags + lang_tags
 
@@ -145,6 +145,8 @@ def post_to_qiita(title, body, tags, private=True):
         "private": private,
     }
     res = requests.post(url, headers=headers, json=payload)
+    if not res.ok:
+        print(f"エラー詳細: {res.status_code} {res.text}")
     res.raise_for_status()
     return res.json()
 
